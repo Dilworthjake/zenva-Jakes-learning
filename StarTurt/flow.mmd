@@ -1,0 +1,15 @@
+flowchart TD
+    A@{shape: circle, label: "Start"}
+    B@{shape: rounded,label: "Set background to black"}
+    C@{shape: diamond, label: "Has drawn 100 stars?"} 
+    D@{shape: rounded, label: "generate x, y at random position"}
+    E@{shape: rounded, label: "generate size at random"}
+    F@{shape: rounded, label: "draw star at (x, y) with size"}
+    G@{shape: circle, label: "End"}
+
+    A --> B
+    B --> C
+    C ---->|Yes| G
+    C -->|No| D
+    D --> E --> F --> C 
+    
