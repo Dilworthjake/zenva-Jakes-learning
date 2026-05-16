@@ -1,0 +1,30 @@
+flowchart TD
+    %% Nodes for drawing solar system with turtle library
+        
+        A("Start")
+        B("Set background to black")
+        C("Set turtle colour to orange")
+        D("Draw and fill circle (60px)")
+        E("Move forward (100px)")
+        F("Set turtle colour to grey")
+        G("Draw and fill circle (20px)")
+        H("Move forward (80px)")
+        I("Set turtle colour to red")
+        J("Draw and fill circle (40px)")
+        K("Move forward (90px)")
+        L("Set turtle colour to green")
+        M("Draw and fill circle (30px)")
+        N("End")
+        
+
+    %% Edge connections between nodes
+    A --> B --> C --> D --> E --> F --> G --> H --> I --> J --> K --> L --> M --> N
+    
+
+    %% Individual node styling. Indicate the node with the planets colour
+        style C color:#FFFFFF, stroke:#e69138, fill:#e69138
+        style F color:#FFFFFF, stroke:#bcbcbc, fill:#bcbcbc
+        style I color:#FFFFFF, stroke:#cc0000, fill:#cc0000
+        style L color:#FFFFFF, stroke:#388E3C, fill:#388E3C
+
+    %% You can add notes with two "%" signs in a row!
