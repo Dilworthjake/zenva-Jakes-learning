@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Preview · JakeIMGResizer{% endblock %}
+
+{% block content %}
+  <div class="page-lead">
+    <h1 class="page-title">Preview</h1>
+    <p class="tagline">Resized output from your last upload. Download each file below.</p>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, msg in messages %}
+      <div class="flash {{ category }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="toolbar">
+    <a class="btn btn-secondary" href="{{ url_for('index') }}">New batch</a>
+  </div>
+
+  <h2 class="preview-heading">Output</h2>
+  <div class="grid">
+    {% for item in batch %}
+    <div class="card">
+      <div class="img-frame">
+        <img src="{{ url_for('serve_upload', filename=item.file) }}" alt="{{ item.label }}">
+      </div>
+      <p>{{ item.label }}</p>
+      <a href="{{ url_for('download_upload', filename=item.file) }}">Download</a>
+    </div>
+    {% endfor %}
+  </div>
+{% endblock %}

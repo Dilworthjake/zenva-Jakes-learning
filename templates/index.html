@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}Upload · JakeIMGResizer{% endblock %}
+
+{% block extra_head %}
+  <style>
+    input[type="checkbox"]#wm_enabled,
+    input[type="checkbox"]#wm_image_enabled {
+      width: auto;
+      max-width: none;
+      accent-color: var(--cyan);
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+    .wm-toggle label {
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+      text-transform: none;
+      letter-spacing: 0.06em;
+      font-size: 0.82rem;
+      color: var(--text);
+    }
+    .wm-sublegend {
+      font-family: var(--font-display);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--magenta);
+      margin: 1rem 0 0.5rem;
+    }
+    textarea {
+      width: 100%;
+      max-width: 28rem;
+      min-height: 4.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text);
+      background: rgba(5, 4, 12, 0.9);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      border-radius: var(--radius);
+      padding: 0.5rem 0.65rem;
+      resize: vertical;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 1px var(--cyan), 0 0 16px rgba(0, 240, 255, 0.2);
+    }
+    input[type="color"] {
+      width: 4rem;
+      height: 2.25rem;
+      padding: 0.15rem;
+      max-width: none;
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      border-radius: var(--radius);
+      background: rgba(5, 4, 12, 0.9);
+      cursor: pointer;
+    }
+    .wm-hint {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin: 0.35rem 0 0;
+      letter-spacing: 0.03em;
+      max-width: 36rem;
+    }
+    #wm_preview_section {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px dashed rgba(0, 240, 255, 0.25);
+    }
+    #wm_canvas_wrap {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #040308;
+    }
+    #wm_canvas {
+      display: block;
+      vertical-align: middle;
+    }
+    #wm_drag {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      cursor: grab;
+      user-select: none;
+      pointer-events: auto;
+      max-width: 95%;
+      word-break: break-word;
+      text-align: center;
+      line-height: 1.15;
+      text-shadow: 0 0 6px rgba(0, 0, 0, 0.85);
+    }
+    #wm_drag:active { cursor: grabbing; }
+    #wm_drag_img {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      cursor: grab;
+      pointer-events: auto;
+      max-width: 90%;
+      max-height: 90%;
+      border: 1px dashed rgba(0, 240, 255, 0.5);
+      border-radius: 2px;
+      box-sizing: border-box;
+    }
+    #wm_drag_img:active { cursor: grabbing; }
+    #wm_drag_img img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 40vh;
+      object-fit: contain;
+    }
+  </style>
+  <script defer src="{{ url_for('static', filename='js/watermark-preview.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+  <div class="page-lead">
+    <h1 class="page-title">Upload</h1>
+    <p class="tagline">
+      <code>PNG</code> / <code>JPEG</code> · up to <code>{{ max_files }}</code> files · extension check only
+    </p>
+    <span class="badge">v1</span>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, msg in messages %}
+      <div class="flash {{ category }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="post" enctype="multipart/form-data" id="upload_form">
+    <fieldset>
+      <legend>Images</legend>
+      <label for="images">Files (max {{ max_files }})</label>
+      <input id="images" type="file" name="images" accept=".png,.jpg,.jpeg,image/png,image/jpeg" multiple required>
+    </fieldset>
+    <fieldset>
+      <legend>Output</legend>
+      <div class="row">
+        <div>
+          <label for="width">Width (px)</label>
+          <input id="width" type="number" name="width" min="1" value="800" required>
+        </div>
+        <div>
+          <label for="height">Height (px)</label>
+          <input id="height" type="number" name="height" min="1" value="600" required>
+        </div>
+        <div>
+          <label for="quality">Quality (1–100)</label>
+          <input id="quality" type="number" name="quality" min="1" max="100" value="85" required>
+        </div>
+        <div>
+          <label for="rotate">Rotate (clockwise)</label>
+          <select id="rotate" name="rotate">
+            <option value="0" selected>None (0°)</option>
+            <option value="90">90°</option>
+            <option value="180">180°</option>
+            <option value="270">270°</option>
+          </select>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Watermarks (optional)</legend>
+
+      <p class="wm-sublegend">Text</p>
+      <div class="wm-toggle">
+        <label for="wm_enabled">
+          <input type="checkbox" id="wm_enabled" name="watermark_enabled" value="1">
+          Enable text watermark
+        </label>
+      </div>
+      <p class="wm-hint">Uses Pillow’s <strong>default bitmap font</strong> only (no custom font files). Text rotation is clockwise; output rotation is in Output above.</p>
+
+      <label for="watermark_text">Text</label>
+      <textarea id="watermark_text" name="watermark_text" maxlength="500" placeholder="Your watermark text"></textarea>
+
+      <div class="row" style="margin-top:0.75rem;">
+        <div>
+          <label for="watermark_size">Text size</label>
+          <input id="watermark_size" type="number" name="watermark_size" min="8" max="120" value="24">
+        </div>
+        <div>
+          <label for="watermark_color">Colour</label>
+          <input id="watermark_color" type="color" name="watermark_color" value="#ffffff">
+        </div>
+        <div>
+          <label for="watermark_opacity">Opacity (%)</label>
+          <input id="watermark_opacity" type="number" name="watermark_opacity" min="0" max="100" value="75">
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:0.5rem;">
+        <div>
+          <label for="watermark_position">Text position</label>
+          <select id="watermark_position" name="watermark_position">
+            <option value="center" selected>Center</option>
+            <option value="top-left">Top left</option>
+            <option value="top-right">Top right</option>
+            <option value="bottom-left">Bottom left</option>
+            <option value="bottom-right">Bottom right</option>
+            <option value="custom">Custom (drag)</option>
+          </select>
+        </div>
+        <div>
+          <label for="watermark_text_rotation">Text rotation (° CW)</label>
+          <input id="watermark_text_rotation" type="number" name="watermark_text_rotation" min="-180" max="180" value="0">
+        </div>
+        <div>
+          <label for="watermark_margin">Text margin (px)</label>
+          <input id="watermark_margin" type="number" name="watermark_margin" min="0" max="400" value="16">
+        </div>
+        <div>
+          <label for="watermark_padding">Text padding (px)</label>
+          <input id="watermark_padding" type="number" name="watermark_padding" min="0" max="200" value="8">
+        </div>
+      </div>
+
+      <input type="hidden" id="watermark_x_pct" name="watermark_x_pct" value="50">
+      <input type="hidden" id="watermark_y_pct" name="watermark_y_pct" value="50">
+
+      <p class="wm-sublegend">Image overlay</p>
+      <div class="wm-toggle">
+        <label for="wm_image_enabled">
+          <input type="checkbox" id="wm_image_enabled" name="watermark_image_enabled" value="1">
+          Enable image watermark
+        </label>
+      </div>
+      <p class="wm-hint">PNG or JPEG logo/mark (max 6 MB). Drawn <strong>under</strong> text if both are on. Scale is % of output width.</p>
+
+      <label for="watermark_image">Image file</label>
+      <input id="watermark_image" type="file" name="watermark_image" accept=".png,.jpg,.jpeg,image/png,image/jpeg">
+
+      <div class="row" style="margin-top:0.75rem;">
+        <div>
+          <label for="watermark_img_scale">Scale (% of width)</label>
+          <input id="watermark_img_scale" type="number" name="watermark_img_scale" min="5" max="100" value="22">
+        </div>
+        <div>
+          <label for="watermark_img_opacity">Opacity (%)</label>
+          <input id="watermark_img_opacity" type="number" name="watermark_img_opacity" min="0" max="100" value="80">
+        </div>
+        <div>
+          <label for="watermark_img_rotation">Image rotation (° CW)</label>
+          <input id="watermark_img_rotation" type="number" name="watermark_img_rotation" min="-180" max="180" value="0">
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:0.5rem;">
+        <div>
+          <label for="watermark_img_position">Image position</label>
+          <select id="watermark_img_position" name="watermark_img_position">
+            <option value="center">Center</option>
+            <option value="top-left">Top left</option>
+            <option value="top-right">Top right</option>
+            <option value="bottom-left">Bottom left</option>
+            <option value="bottom-right" selected>Bottom right</option>
+            <option value="custom">Custom (drag)</option>
+          </select>
+        </div>
+        <div>
+          <label for="watermark_img_margin">Image margin (px)</label>
+          <input id="watermark_img_margin" type="number" name="watermark_img_margin" min="0" max="400" value="16">
+        </div>
+        <div>
+          <label for="watermark_img_padding">Image padding (px)</label>
+          <input id="watermark_img_padding" type="number" name="watermark_img_padding" min="0" max="200" value="8">
+        </div>
+      </div>
+
+      <input type="hidden" id="watermark_img_x_pct" name="watermark_img_x_pct" value="90">
+      <input type="hidden" id="watermark_img_y_pct" name="watermark_img_y_pct" value="90">
+
+      <div id="wm_preview_section" hidden>
+        <label style="margin-top:1rem;">Layout preview (first selected photo)</label>
+        <p class="wm-hint">Drag the text or image overlay when its position is <strong>Custom</strong>. Percentages match the final width/height you set in Output.</p>
+        <div id="wm_canvas_wrap">
+          <canvas id="wm_canvas" width="1" height="1" aria-hidden="true"></canvas>
+          <div id="wm_drag_img" hidden role="presentation">
+            <img id="wm_drag_img_inner" alt="">
+          </div>
+          <div id="wm_drag" role="presentation">Preview</div>
+        </div>
+      </div>
+    </fieldset>
+
+    <button type="submit">Resize &amp; preview</button>
+  </form>
+{% endblock %}
