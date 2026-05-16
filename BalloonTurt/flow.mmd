@@ -1,0 +1,19 @@
+flowchart TD
+    %% nodes
+    A("Start")
+    B@{ shape: rounded, label: "Draw Balloon" }
+    C1@{ shape: lean-r, label: "Up key pressed" }
+    C2@{ shape: lean-r, label: "Down key pressed" }
+    D1@{ shape: diamond, label: "Balloon at max size?" }
+    D2@{ shape: diamond, label: "Balloon at min size?" }
+    E1@{ shape: rounded, label: "Clear balloon, write pop!" }
+    E2@{ shape: rounded, label: "Increase balloon size" }
+    F1@{ shape: rounded, label: "Clear balloon, write empty!" }
+    F2@{ shape: rounded, label: "Decrease balloon size" }
+    G("End")
+    A --> B 
+    B --> C1 --> D1-- "yes"--> E1 --> G
+    D1-- "no" --> E2 --> B
+
+    B --> C2 --> D2-- "yes"--> F1 --> G
+    D2-- "no" --> F2 --> B
