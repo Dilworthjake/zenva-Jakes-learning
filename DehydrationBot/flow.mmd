@@ -1,0 +1,26 @@
+flowchart TD
+    A@{shape: circle, label: Start}
+    B@{shape: rounded, label: Assess the patient's general appearance}
+    C@{shape: diamond, label: Is the patient irritable or lethargic?}
+    D1@{shape: rectangle, label: Assess the patient's eyes}
+    D2@{shape: rectangle, label: Assess the patient's skin pinch}
+    E1@{shape: diamond, label: Are the patient's eyes sunken?}
+    E2@{shape: diamond, label: Does the patient's skin pinch return slowly?}
+    F1@{shape: rectangle, label: The patient is  dehydrated.}
+    F2@{shape: rectangle, label: The patient is severely dehydrated.}
+    F3@{shape: rectangle, label: The patient is not dehydrated.}
+    G@{shape: circle, label: End}
+
+    A --> B
+    B --> C
+    C -->|"No"| D1
+    C -->|"Yes"| D2
+    D1 --> E1
+    D2 --> E2
+    E1 --->|"No"| F3
+    E1 -->|"Yes"| F2
+    E2 --->|"No"| F1
+    E2 -->|"Yes"| F2
+    F1 ---> G
+    F2 ---> G
+    F3 ---> G
