@@ -1,0 +1,20 @@
+flowchart TD
+    A@{shape: circle, label: "Start"}
+    B@{shape: rounded, label: "Background colour of sand"}
+    C@{shape: rounded, label: "draw ocean"}
+    D@{shape: rounded, label: "move turtle to start position"}
+    E@{shape: lean-r, label: "Move key pressed?"}
+    F@{shape: rounded, label: "move turtle"}
+    G@{shape: diamond, label: "turtle at end position?"}
+    H@{shape: rounded, label: "hide turtle, write You win"}
+    I@{shape: circle, label: "End"}
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --"Yes"--> H
+    H --> I
+    G --"No"--> E
